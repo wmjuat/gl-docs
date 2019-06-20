@@ -310,65 +310,93 @@ sample of expected format of multi-part content below:
 
 Batch of messages could be identified if they have the same `multipartRefId`.
 
-###Binary SMS
+###Extended Suffixing
 
-Binary Short Messaging interface allows an application to send any generic binary object attachments to the network using SMS.
+**Sending SMS-MT with Extended Suffixing**
 
-Use <span class="method">POST</span> method on this URI:
+You can send normal SMS with extended suffixing. This means that on top of your fixed shortcode (2158XXXX), you can add up to 7 digits of your choosing.
+
+__Note__: Extended suffixing is available for Globe/TM subscribers only. If sent to non-Globe numbers, only the normal shortcode will be received (22565XXXX)
+
+###### Sample POST Requests
+
+__SAMPLE 1__:
 ```
-https://devapi.globelabs.com.ph/binarymessaging/v1/outbound/{senderAddress}/requests?access_token={access_token}
+curl -X POST
+"https://devapi.globelabs.com.ph/smsmessaging/v1/outbound/215812340000001/requests?access_token=3YM8xurK_IPdhvX4OUWXQljcHTIPgQDdTESLXDIes4g" -H "Content-Type: application/json" -d
+{"outboundSMSMessageRequest": {
+   "clientCorrelator": "123456",
+   "senderAddress": "1234",
+   "outboundSMSTextMessage": {"message": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis commodo posuere dui vitae feugiat. Cras vehicula, elit eget commodo tristique, mi magna placerat turpis, quis ultrices massa odio vitae sapien. Proin elit diam, malesuada sit amet blandit id, fermentum eu orci."},
+   "address": "9179474048"]
+ }
+}
 ```
-#### Parameters
+__SAMPLE 2__:
+```
+curl -X POST
+"https://devapi.globelabs.com.ph/smsmessaging/v1/outbound/21581234567/requests?access_token=3YM8xurK_IPdhvX4OUWXQljcHTIPgQDdTESLXDIes4g" -H "Content-Type: application/json" -d
+{"outboundSMSMessageRequest": {
+   "clientCorrelator": "123456",
+   "senderAddress": "1234",
+   "outboundSMSTextMessage": {"message": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis commodo posuere dui vitae feugiat. Cras vehicula, elit eget commodo tristique, mi magna placerat turpis, quis ultrices massa odio vitae sapien. Proin elit diam, malesuada sit amet blandit id, fermentum eu orci."},
+   "address": "9179474048"]
+ }
+}
+```
+ 
+**Receiving SMS with Extended Suffixing**
 
-Parameter | Description | Required
-----------|-------------|----------
-`userDataHeader` | UDH of the message | true
-`dataCodingScheme` | data coding of the message | true
-`address` | MSISDN of the recipient | true
-`outboundBinaryMessage.message` | message to be sent | true
-`senderAddress` | shortcode of the app | true
-`access_token` | access token of the subscriber | true
+There will be additional parameters whenever you receive an sms content exceeding 160 characters, this would be:
 
-Data Coding Value | Description
-------------------|------------
-0                 | SMSC Default
-1                 | IA5/ASCII
-3                 | Latin 1 (ISO-8859-1)
-4                 | Binary (8-bit)
-8                 | UCS2 (Unicode)
+Parameter | Description |
+----------|-------------|
+`multipartRefId` | ID of multi-part message
+`multipartSeqNum` | Sequence of multi-part message
+
+sample of expected format of multi-part content below:
 
 ```json
 {
-  "outboundBinaryMessageRequest": {
-    "address": "9171234567",
-    "deliveryInfoList": {
-      "deliveryInfo": [],
-      "resourceURL": "https://devapi.globelabs.com.ph/binarymessaging/v1/outbound/{senderAddress}/requests?access_token={access_token}",
-    "senderAddress": "21581234",
-    "userDataHeader": "06050423F423F4",
-    "dataCodingScheme": 1,
-    "outboundBinaryMessage": {
-      "message": "samplebinarymessage"
-    },
-    "receiptRequest": {
-      "notifyURL": "http://example.com/notify",
-      "callbackData": null,
-      "senderName": null
-    },
-  "resourceURL": "https://devapi.globelabs.com.ph/binarymessaging/v1/outbound/{senderAddress}/requests?access_token={access_token}",
-  }
+   "inboundSMSMessageList":{
+      "inboundSMSMessage":[
+         {
+            "dateTime":"Fri Nov 22 2013 12:12:13 GMT+0000 (UTC)",
+            "destinationAddress":"tel:21581234",
+            "messageId":"57cd07d61a28d80100a26bc7",
+            "message":"AlrightAlrightAlrightAlrightAlrightAlrightAlrightAlrightAlrightAlrightAlrightAlrightAlrightAlrightAlrightAlrightAlrightAlrightAlrightAlrightAlrightAlrigh",
+            "resourceURL":null,
+            "senderAddress":"tel:+639171234567",
+            "multipartRefId":"5476ddbba4e7d20c527c0f83422bf938",
+            "multipartSeqNum":"1"
+         }
+      ],
+      "numberOfMessagesInThisBatch":"2",
+      "resourceURL":null,
+      "totalNumberOfPendingMessages":0
+   }
+}
+
+{
+   "inboundSMSMessageList":{
+      "inboundSMSMessage":[
+         {
+            "dateTime":"Fri Nov 22 2013 12:12:13 GMT+0000 (UTC)",
+            "destinationAddress":"tel:21581234",
+            "messageId":"57cd07dab9d3660100cee8d2",
+            "message":"tAlrightAlrightAlrightAlrightAlrightAlrightAlrightAlrightAlrightAlrightAlrightAlrightAlrightAlrightu",
+            "resourceURL":null,
+            "senderAddress":"tel:+639171234567",
+            "multipartRefId":"5476ddbba4e7d20c527c0f83422bf938",
+            "multipartSeqNum":"2"
+         }
+      ],
+      "numberOfMessagesInThisBatch":"2",
+      "resourceURL":null,
+      "totalNumberOfPendingMessages":0
+   }
 }
 ```
-
-###SMS API HTTP Response
-
-|Code|Description|
-|----|-----------|
-|201|Request has been successful|
-|400/401|Request failed. Wrong or missing parameters, invalid subscriber_number format, wrong access_token. |
-|502/503|Platform Error. API Service is busy or down|
-
-API requests with a response code of 201, 400 or 401 will be chargeable against your developer wallet. Standard SMS API rates apply, unless otherwise stated.
 
 
 Location Based Services
