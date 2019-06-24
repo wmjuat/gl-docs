@@ -635,7 +635,7 @@ https://devapi.globelabs.com.ph/payment/v1/transactions/getLastRefCode
 }
 ```
 
-__Note__: Non 200 and 500 series will deduct 0.50 from your wallet balance
+__Note__: Non 200 and 400 series will deduct 0.50 from your wallet balance
 
 
 Load
